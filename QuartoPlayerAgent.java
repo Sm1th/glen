@@ -65,7 +65,10 @@ public class QuartoPlayerAgent extends QuartoAgent {
         return move[0] + "," + move[1];
     }
 
-    public static double monteCarlo(QuartoBoard board, int simulations){
+    private double monteCarlo(QuartoBoard board, int simulations){
+        if (simulations<=0){
+            simulations=100;
+        }
         double sum = 0;
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
@@ -86,7 +89,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         return sum/simulations;
     }
 
-    public static boolean checkIfGameIsWon(QuartoBoard board) {
+    private boolean checkIfGameIsWon(QuartoBoard board) {
         for(int i = 0; i < NUMBER_OF_ROWS; i++) {
             if (board.checkRow(i)) {
                 return true;
@@ -102,7 +105,6 @@ public class QuartoPlayerAgent extends QuartoAgent {
         if (board.checkDiagonals()) {
             return true;
         }
-
         return false;
     }
 
