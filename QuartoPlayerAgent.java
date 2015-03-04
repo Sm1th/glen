@@ -155,42 +155,42 @@ public class QuartoPlayerAgent extends QuartoAgent {
     				break;
     		}
 
-
-            int nLowDiag = getNumberOfIdenticalCharacteristicsInLowDiagonal(board);
-            switch(nLowDiag) {
-                case 1:
-                    count1++;
-                    break;
-                case 2:
-                    count2++;
-                    break;
-                case 3:
-                    count3++;
-                    break;
-                case 4:
-                    count4++;
-                    break;
-            }
-
-
-            int nHighDiag = getNumberOfIdenticalCharacteristicsInHighDiagonal(board);
-            switch(nHighDiag) {
-                case 1:
-                    count1++;
-                    break;
-                case 2:
-                    count2++;
-                    break;
-                case 3:
-                    count3++;
-                    break;
-                case 4:
-                    count4++;
-                    break;
-            }
     	} //end for loop
 
-	return 4*count4 + 3*count3 + 2*count2 + count1;
+        int nLowDiag = getNumberOfIdenticalCharacteristicsInLowDiagonal(board);
+        switch(nLowDiag) {
+            case 1:
+                count1++;
+                break;
+            case 2:
+                count2++;
+                break;
+            case 3:
+                count3++;
+                break;
+            case 4:
+                count4++;
+                break;
+        }
+
+
+        int nHighDiag = getNumberOfIdenticalCharacteristicsInHighDiagonal(board);
+        switch(nHighDiag) {
+            case 1:
+                count1++;
+                break;
+            case 2:
+                count2++;
+                break;
+            case 3:
+                count3++;
+                break;
+            case 4:
+                count4++;
+                break;
+        }
+
+	    return 4*count4 + 3*count3 + 2*count2 + count1;
 
     }
 
