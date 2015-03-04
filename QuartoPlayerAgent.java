@@ -1,4 +1,4 @@
-c class QuartoPlayerAgent extends QuartoAgent {
+public class QuartoPlayerAgent extends QuartoAgent {
 
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
