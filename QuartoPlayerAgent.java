@@ -73,14 +73,12 @@ public class QuartoPlayerAgent extends QuartoAgent {
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
             int turn = 1;
-            while (true){
+            while (!copyBoard.checkIfBoardIsFull()){
                 int pieceId = copyBoard.chooseRandomPieceNotPlayed(100);
                 int[] move = copyBoard.chooseRandomPositionNotPlayed(100);
                 copyBoard.insertPieceOnBoard(move[0], move[1], pieceId);
                 if (checkIfGameIsWon(copyBoard)){
                     sum+=turn;
-                    break;
-                }else if (copyBoard.checkIfBoardIsFull()){
                     break;
                 }
                 turn = 0-turn;
