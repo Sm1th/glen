@@ -78,9 +78,49 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
         return move[0] + "," + move[1];
     }
+    
+    private double monteCarlo(QuartoBoard board, int simulations, int turn){
+        if (simulations<=0)
+            simulations=100;
+        }
+        double sum = 0;
+        for (int i=0;i<simulations;i++){
+            QuartoBoard copyBoard = new QuartoBoard(board);
+            while (!copyBoard.checkIfBoardIsFull()){
+                int pieceId = copyBoard.chooseRandomPieceNotPlayed(100);
+                int[] move = copyBoard.chooseRandomPositionNotPlayed(100);
+                copyBoard.insertPieceOnBoard(move[0], move[1], pieceId);
+                if (checkIfGameIsWon(copyBoard)){
+                    sum+=turn;
+                    break;
+                }
+                turn = 0-turn;
+            }
+        }
+        return sum/simulations;
+    }
+
+    private boolean checkIfGameIsWon(QuartoBoard board) {
+        for(int i = 0; i < NUMBER_OF_ROWS; i++) {
+            if (board.checkRow(i)) {
+                return true;
+            }
+
+        }
+        for(int i = 0; i < NUMBER_OF_COLUMNS; i++) {
+            if (board.checkColumn(i)) {
+                return true;
+            }
+
+        }
+        if (board.checkDiagonals()) {
+            return true;
+        }
+        return false;
+    }
 
     protected int getHeuristicValue(QuartoBoard board) {
-	return 4*getNumIdenticalProps(board, 4) + 3*getNumIdenticalProps(board, 3) + 2*getNumIdenticalProps(board, 2) + 1*getNumIdenticalProps(board, 1);
+    	return 4*getNumIdenticalProps(board, 4) + 3*getNumIdenticalProps(board, 3) + 2*getNumIdenticalProps(board, 2) + 1*getNumIdenticalProps(board, 1);
 
     }
 
@@ -288,5 +328,4 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
 		return commonCharacteristics[commonCharacteristics.length - 1];
 	}
-
 }
