@@ -65,14 +65,13 @@ public class QuartoPlayerAgent extends QuartoAgent {
         return move[0] + "," + move[1];
     }
 
-    private double monteCarlo(QuartoBoard board, int simulations){
-        if (simulations<=0){
+    private double monteCarlo(QuartoBoard board, int simulations, int turn){
+        if (simulations<=0)
             simulations=100;
         }
         double sum = 0;
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
-            int turn = 1;
             while (!copyBoard.checkIfBoardIsFull()){
                 int pieceId = copyBoard.chooseRandomPieceNotPlayed(100);
                 int[] move = copyBoard.chooseRandomPositionNotPlayed(100);
