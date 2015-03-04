@@ -78,9 +78,9 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
         return move[0] + "," + move[1];
     }
-    
+
     private double monteCarlo(QuartoBoard board, int simulations, int turn){
-        if (simulations<=0)
+        if (simulations<=0) {
             simulations=100;
         }
         double sum = 0;
@@ -120,60 +120,86 @@ public class QuartoPlayerAgent extends QuartoAgent {
     }
 
     protected int getHeuristicValue(QuartoBoard board) {
-    	return 4*getNumIdenticalProps(board, 4) + 3*getNumIdenticalProps(board, 3) + 2*getNumIdenticalProps(board, 2) + 1*getNumIdenticalProps(board, 1);
+    	int count1 = 0, count2 = 0, count3 = 0, count4 = 0;
+
+        for(int i = 0; i < board.getNumberOfRows(); i++) {
+    		int nCol = getNumberOfIdenticalCharacteristicsInColumn(board, i);
+    		switch(nCol){
+    			case 1:
+    				count1++;
+    				break;
+    			case 2:
+    				count2++;
+    				break;
+    			case 3:
+    				count3++;
+    				break;
+    			case 4:
+    				count4++;
+    				break;
+    		}
+
+    		int nRow = getNumberOfIdenticalCharacteristicsInRow(board, i);
+    		switch(nRow){
+    			case 1:
+    				count1++;
+    				break;
+    			case 2:
+    				count2++;
+    				break;
+    			case 3:
+    				count3++;
+    				break;
+    			case 4:
+    				count4++;
+    				break;
+    		}
+
+
+            int nLowDiag = getNumberOfIdenticalCharacteristicsInLowDiagonal(board);
+            switch(nLowDiag) {
+                case 1:
+                    count1++;
+                    break;
+                case 2:
+                    count2++;
+                    break;
+                case 3:
+                    count3++;
+                    break;
+                case 4:
+                    count4++;
+                    break;
+            }
+
+
+            int nHighDiag = getNumberOfIdenticalCharacteristicsInHighDiagonal(board);
+            switch(nHighDiag) {
+                case 1:
+                    count1++;
+                    break;
+                case 2:
+                    count2++;
+                    break;
+                case 3:
+                    count3++;
+                    break;
+                case 4:
+                    count4++;
+                    break;
+            }
+    	} //end for loop
+
+	return 4*count4 + 3*count3 + 2*count2 + count1;
 
     }
 
-    protected int getNumIdenticalProps(QuartoBoard board, int numIdenticalProps) {
-	int count1 = 0, count2 = 0, count3 = 0, count4 = 0;
-	for(int i = 0; i < board.getNumberOfRows(); i++) {
-		int nCol = checkColumn(board, i);
-		switch(nCol){
-			case 1:
-				count1++;
-				break;
-			case 2:
-				count2++;
-				break;
-			case 3:
-				count3++;
-				break;
-			case 4:
-				count4++;
-				break;
-		}
 
-		int nRow = checkRow(board, i);
-		switch(nRow){
-			case 1:
-				count1++;
-				break;
-			case 2:
-				count2++;
-				break;
-			case 3:
-				count3++;
-				break;
-			case 4:
-				count4++;
-				break;
-		}
-
-
-	}
-	//TODO: *finish for diagonals*
-
-	return 0;
-		
-    }
-
-
-	protected int checkColumn(QuartoBoard board, int column) {
+	protected int getNumberOfIdenticalCharacteristicsInColumn(QuartoBoard board, int column) {
 
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
-		//TODO: *might not have been initialized*
-		boolean[] initialCharacteristics;
+		boolean[] initialCharacteristics = null;
 		int i;
 		for (i = 0; i < board.getNumberOfRows(); i++) {
 			if (board.getPieceOnPosition(i,column) != null) {
@@ -208,12 +234,11 @@ public class QuartoPlayerAgent extends QuartoAgent {
 		return commonCharacteristics[commonCharacteristics.length - 1];
 	}
 
-	protected int checkRow(QuartoBoard board, int row) {
+	protected int getNumberOfIdenticalCharacteristicsInRow(QuartoBoard board, int row) {
 
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
-		//TODO: *might not have been initialized*
-		boolean[] initialCharacteristics;
+		boolean[] initialCharacteristics = null;
 		int i;
 		for (i = 0; i < board.getNumberOfColumns(); i++) {
 			if (board.getPieceOnPosition(row,i) != null) {
@@ -224,7 +249,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 		if (initialCharacteristics == null) {
 			return 0;
 		}
-		
+
 		for(int col = i; col < board.getNumberOfColumns(); col++) {
 			QuartoPiece piece = board.getPieceOnPosition(row, col);
 			if(piece == null) {
@@ -248,11 +273,10 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
 	}
 
-	protected int checkLowDiagonal(QuartoBoard board) {
+	protected int getNumberOfIdenticalCharacteristicsInLowDiagonal(QuartoBoard board) {
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
-		//TODO: *might not have been initialized*
-		boolean[] initialCharacteristics;
+		boolean[] initialCharacteristics = null;
 		int i, j;
 		for(i = 0, j = 0; i < board.getNumberOfRows(); i++, j++) {
 			if (board.getPieceOnPosition(i,j) != null) {
@@ -289,11 +313,10 @@ public class QuartoPlayerAgent extends QuartoAgent {
 		return commonCharacteristics[commonCharacteristics.length - 1];
 
 		}
-	protected int checkHighDiagonal(QuartoBoard board) {
+	protected int getNumberOfIdenticalCharacteristicsInHighDiagonal(QuartoBoard board) {
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
-		//TODO: *might not have been initialized*
-		boolean[] initialCharacteristics;
+		boolean[] initialCharacteristics = null;
 		int i, j;
 		for(i = board.getNumberOfRows()-1, j = 0; i >= 0; i--, j++) {
 			if (board.getPieceOnPosition(i,j) != null) {
