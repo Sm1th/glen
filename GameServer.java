@@ -122,7 +122,7 @@ public class GameServer {
 				System.out.println("Server received message from player " + playerNumber + ": " + input);
 				return input;
 			} catch (Exception e) {
-				System.out.println("No input from Player: " + playerNumber + " within specified time limit");
+				System.out.println("\u001B[31mNo input from Player: " + playerNumber + " within specified time limit\u001B[0m");
 			}
 			
 			return null;

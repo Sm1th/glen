@@ -45,10 +45,12 @@ public class QuartoPlayerAgent extends QuartoAgent {
         System.out.println("Choosing piece....");
         int pieceID=-1;//THIS SHOULD NEVER ACTUALLY BE USED
         int minScore=Integer.MAX_VALUE;
+        int alpha = Integer.MIN_VALUE;
+        int beta = Integer.MAX_VALUE;
         for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
             if (!this.quartoBoard.isPieceOnBoard(i)){
                 QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
-                int score = minimaxPosition(copyBoard, i, 0, false);
+                int score = minimaxPosition(copyBoard, i, 0, false, alpha, beta);
                 if (score<minScore){
                     pieceID = i;
                     minScore = score;
@@ -59,7 +61,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         return BinaryString;
     }
 
-    private int minimaxPosition(QuartoBoard board, int pieceID, int depth, boolean isGlensTurn){
+    private int minimaxPosition(QuartoBoard board, int pieceID, int depth, boolean isGlensTurn, int alpha, int beta){
         // System.out.println("minimaxPosition depth: " + depth);
         if (depth>DEPTH) {
             return getHeuristicValue(board);
@@ -77,10 +79,16 @@ public class QuartoPlayerAgent extends QuartoAgent {
                             return Integer.MIN_VALUE;
                         }
                     }
-                    int score = minimaxPiece(copyBoard, depth+1, isGlensTurn);
+                    int score = minimaxPiece(copyBoard, depth+1, isGlensTurn, alpha, beta);
                     if (score>maxScore){
                         maxScore = score;
                     } 
+                    if (maxScore>=beta){
+                        return maxScore;
+                    }
+                    if (maxScore>alpha){
+                        alpha = maxScore;
+                    }
                 }
                 
             }
@@ -88,7 +96,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         return maxScore;
     }
 
-    private int minimaxPiece(QuartoBoard board, int depth, boolean isGlensTurn){
+    private int minimaxPiece(QuartoBoard board, int depth, boolean isGlensTurn, int alpha, int beta){
         // System.out.println("minimaxPiece depth: " + depth);
         if (depth>DEPTH) {
             return getHeuristicValue(board);
@@ -97,9 +105,15 @@ public class QuartoPlayerAgent extends QuartoAgent {
         for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
             if (!this.quartoBoard.isPieceOnBoard(i)){
                 QuartoBoard copyBoard = new QuartoBoard(board);
-                int score = minimaxPosition(copyBoard, i, depth+1, !isGlensTurn);
+                int score = minimaxPosition(copyBoard, i, depth+1, !isGlensTurn, alpha, beta);
                 if (score<minScore){
                     minScore = score;
+                }
+                if (minScore<=alpha){
+                    return minScore;
+                }
+                if (minScore<beta){
+                    beta = minScore;
                 }
             }
         }
@@ -116,6 +130,8 @@ public class QuartoPlayerAgent extends QuartoAgent {
         System.out.println("Choosing move....");
         int[] move = new int[2];
     	int maxScore = Integer.MIN_VALUE;
+        int alpha = Integer.MIN_VALUE;
+        int beta = Integer.MAX_VALUE;
     	for(int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
     		for(int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
     			if(!this.quartoBoard.isSpaceTaken(row, col)) {
@@ -124,12 +140,18 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     if(checkIfGameIsWon(copyBoard)){
                         return row + "," + col;
                     }
-    				int score = minimaxPiece(copyBoard, 0, true);
-    				if(score > maxScore) {
+    				int score = minimaxPiece(copyBoard, 0, true, alpha, beta);
+    				if (score > maxScore) {
     					maxScore = score;
     					move[0] = row;
     					move[1] = col;
     				}
+                    if (maxScore>=beta){
+                        return move[0] + "," + move[1];
+                    }
+                    if (maxScore>alpha){
+                        alpha = maxScore;
+                    }
     			}
     		}
     	}
