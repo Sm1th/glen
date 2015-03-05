@@ -2,7 +2,7 @@ import java.lang.*;
 import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
-    private final int DEPTH = 1;
+    private final int DEPTH = 2;
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
         // because super calls one of the super class constructors(you can overload constructors), you need to pass the parameters required.
