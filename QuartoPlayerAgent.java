@@ -26,7 +26,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         }
 
         gameClient.connectToServer(ip, 4321);
-        QuartoRandomAgent quartoAgent = new QuartoRandomAgent(gameClient, stateFileName);
+        QuartoPlayerAgent quartoAgent = new QuartoPlayerAgent(gameClient, stateFileName);
         quartoAgent.play();
 
         gameClient.closeConnection();
@@ -35,19 +35,58 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
 
     /*
-	 * Do Your work here
-	 * The server expects a binary string, e.g.   10011
+	 * This code will try to find a piece that the other player can't make a winning move off of
 	 */
     @Override
     protected String pieceSelectionAlgorithm() {
         //some useful lines:
         //String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
 
-        QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+        this.startTimer();
+        boolean skip = false;
+        for (int i = 0; i < this.quartoBoard.getNumberOfPieces(); i++) {
+            skip = false;
+            if (!this.quartoBoard.isPieceOnBoard(i)) {
+                for (int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
+                    for (int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
+                        if (!this.quartoBoard.isSpaceTaken(row, col)) {
+                            QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+                            copyBoard.insertPieceOnBoard(row, col, i);
+                            if (copyBoard.checkRow(row) || copyBoard.checkColumn(col) || copyBoard.checkDiagonals()) {
+                                skip = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (skip) {
+                        break;
+                    }
 
-        //do work
-        int pieceID = copyBoard.chooseRandomPieceNotPlayed(100);
-        String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
+                }
+                if (!skip) {
+                    return String.format("%5s", Integer.toBinaryString(i)).replace(' ', '0');
+                }
+
+            }
+            if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMMUNICATION_DELAY)) {
+                //handle for when we are over some imposed time limit (make sure you account for communication delay)
+            }
+            String message = null;
+            //for every other i, check if there is a missed message
+            /*
+            if (i % 2 == 0 && ((message = this.checkForMissedServerMessages()) != null)) {
+                //the oldest missed message is stored in the variable message.
+                //You can see if any more missed messages are in the socket by running this.checkForMissedServerMessages() again
+            }
+            */
+        }
+
+
+        //if we don't find a piece in the above code just grab the first random piece
+        int pieceId = this.quartoBoard.chooseRandomPieceNotPlayed(100);
+        String BinaryString = String.format("%5s", Integer.toBinaryString(pieceId)).replace(' ', '0');
+
+
         return BinaryString;
     }
 
@@ -60,21 +99,24 @@ public class QuartoPlayerAgent extends QuartoAgent {
         //do work
 
         int[] move = new int[2];
-	int bestHeuristicVal = -1;
-	for(int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
-		for(int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
-			if(this.quartoBoard.getPieceOnPosition(row, col) == null) {
-				QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
-				copyBoard.insertPieceOnBoard(row, col, pieceID);
-				int tempHeuristicVal = getHeuristicValue(copyBoard);
-				if(tempHeuristicVal > bestHeuristicVal) {
-					bestHeuristicVal = tempHeuristicVal;
-					move[0] = row;
-					move[1] = col;
-				}
-			}
-		}
-	}
+    	int bestHeuristicVal = -1;
+    	for(int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
+    		for(int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
+    			if(this.quartoBoard.getPieceOnPosition(row, col) == null) {
+    				QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+    				copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    if (copyBoard.checkRow(row) || copyBoard.checkColumn(col) || copyBoard.checkDiagonals()) {
+                        return row + "," + col;
+                    }
+    				int tempHeuristicVal = getHeuristicValue(copyBoard);
+    				if(tempHeuristicVal > bestHeuristicVal) {
+    					bestHeuristicVal = tempHeuristicVal;
+    					move[0] = row;
+    					move[1] = col;
+    				}
+    			}
+    		}
+    	}
 
         return move[0] + "," + move[1];
     }
