@@ -229,9 +229,9 @@ public class QuartoPlayerAgent extends QuartoAgent {
 			}
 		}
 
-		Arrays.sort(commonCharacteristics);
-
-		return commonCharacteristics[commonCharacteristics.length - 1];
+        Arrays.sort(commonCharacteristics);
+		int returnVal = commonCharacteristics[commonCharacteristics.length - 1];
+		return (returnVal == -1) ? 0 : returnVal;
 	}
 
 	protected int getNumberOfIdenticalCharacteristicsInRow(QuartoBoard board, int row) {
@@ -267,9 +267,9 @@ public class QuartoPlayerAgent extends QuartoAgent {
 			}
 		}
 
-		Arrays.sort(commonCharacteristics);
-
-		return commonCharacteristics[commonCharacteristics.length - 1];
+        Arrays.sort(commonCharacteristics);
+		int returnVal = commonCharacteristics[commonCharacteristics.length - 1];
+		return (returnVal == -1) ? 0 : returnVal;
 
 	}
 
@@ -308,11 +308,11 @@ public class QuartoPlayerAgent extends QuartoAgent {
 			}
 		}
 
-		Arrays.sort(commonCharacteristics);
+        Arrays.sort(commonCharacteristics);
+		int returnVal = commonCharacteristics[commonCharacteristics.length - 1];
+		return (returnVal == -1) ? 0 : returnVal;
 
-		return commonCharacteristics[commonCharacteristics.length - 1];
-
-		}
+	}
 	protected int getNumberOfIdenticalCharacteristicsInHighDiagonal(QuartoBoard board) {
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
@@ -347,8 +347,8 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
 		}
 
-		Arrays.sort(commonCharacteristics);
-
-		return commonCharacteristics[commonCharacteristics.length - 1];
+        Arrays.sort(commonCharacteristics);
+		int returnVal = commonCharacteristics[commonCharacteristics.length - 1];
+		return (returnVal == -1) ? 0 : returnVal;
 	}
 }
