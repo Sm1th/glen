@@ -1,6 +1,8 @@
+import java.lang.*;
 import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
+    private final int DEPTH = 1;
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
         // because super calls one of the super class constructors(you can overload constructors), you need to pass the parameters required.
@@ -26,7 +28,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         }
 
         gameClient.connectToServer(ip, 4321);
-        QuartoRandomAgent quartoAgent = new QuartoRandomAgent(gameClient, stateFileName);
+        QuartoPlayerAgent quartoAgent = new QuartoPlayerAgent(gameClient, stateFileName);
         quartoAgent.play();
 
         gameClient.closeConnection();
@@ -40,15 +42,68 @@ public class QuartoPlayerAgent extends QuartoAgent {
 	 */
     @Override
     protected String pieceSelectionAlgorithm() {
-        //some useful lines:
-        //String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
-
-        QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
-
-        //do work
-        int pieceID = copyBoard.chooseRandomPieceNotPlayed(100);
+        System.out.println("Choosing piece....");
+        int pieceID=-1;//THIS SHOULD NEVER ACTUALLY BE USED
+        int minScore=Integer.MAX_VALUE;
+        for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
+            if (!this.quartoBoard.isPieceOnBoard(i)){
+                QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+                int score = minimaxPosition(copyBoard, i, 0, false);
+                if (score<minScore){
+                    pieceID = i;
+                    minScore = score;
+                }
+            }
+        }
         String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
         return BinaryString;
+    }
+
+    private int minimaxPosition(QuartoBoard board, int pieceID, int depth, boolean isGlensTurn){
+        // System.out.println("minimaxPosition depth: " + depth);
+        if (depth>DEPTH) {
+            return getHeuristicValue(board);
+        }
+        int maxScore = Integer.MIN_VALUE;
+        for (int row=0;row<board.getNumberOfRows();row++){
+            for (int col=0;col<board.getNumberOfColumns();col++){
+                QuartoBoard copyBoard = new QuartoBoard(board);
+                if (!copyBoard.isSpaceTaken(row, col)){
+                    copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    if(checkIfGameIsWon(copyBoard)){
+                        if (isGlensTurn){
+                            return Integer.MAX_VALUE;
+                        } else {
+                            return Integer.MIN_VALUE;
+                        }
+                    }
+                    int score = minimaxPiece(copyBoard, depth+1, isGlensTurn);
+                    if (score>maxScore){
+                        maxScore = score;
+                    } 
+                }
+                
+            }
+        }
+        return maxScore;
+    }
+
+    private int minimaxPiece(QuartoBoard board, int depth, boolean isGlensTurn){
+        // System.out.println("minimaxPiece depth: " + depth);
+        if (depth>DEPTH) {
+            return getHeuristicValue(board);
+        }
+        int minScore=Integer.MAX_VALUE;
+        for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
+            if (!this.quartoBoard.isPieceOnBoard(i)){
+                QuartoBoard copyBoard = new QuartoBoard(board);
+                int score = minimaxPosition(copyBoard, i, depth+1, !isGlensTurn);
+                if (score<minScore){
+                    minScore = score;
+                }
+            }
+        }
+        return minScore;
     }
 
     /*
@@ -58,23 +113,26 @@ public class QuartoPlayerAgent extends QuartoAgent {
     @Override
     protected String moveSelectionAlgorithm(int pieceID) {
         //do work
-
+        System.out.println("Choosing move....");
         int[] move = new int[2];
-	int bestHeuristicVal = -1;
-	for(int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
-		for(int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
-			if(this.quartoBoard.getPieceOnPosition(row, col) == null) {
-				QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
-				copyBoard.insertPieceOnBoard(row, col, pieceID);
-				int tempHeuristicVal = getHeuristicValue(copyBoard);
-				if(tempHeuristicVal > bestHeuristicVal) {
-					bestHeuristicVal = tempHeuristicVal;
-					move[0] = row;
-					move[1] = col;
-				}
-			}
-		}
-	}
+    	int maxScore = Integer.MIN_VALUE;
+    	for(int row = 0; row < this.quartoBoard.getNumberOfRows(); row++) {
+    		for(int col = 0; col < this.quartoBoard.getNumberOfColumns(); col++) {
+    			if(!this.quartoBoard.isSpaceTaken(row, col)) {
+    				QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+    				copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    if(checkIfGameIsWon(copyBoard)){
+                        return row + "," + col;
+                    }
+    				int score = minimaxPiece(copyBoard, 0, true);
+    				if(score > maxScore) {
+    					maxScore = score;
+    					move[0] = row;
+    					move[1] = col;
+    				}
+    			}
+    		}
+    	}
 
         return move[0] + "," + move[1];
     }
