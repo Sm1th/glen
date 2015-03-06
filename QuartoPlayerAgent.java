@@ -2,7 +2,7 @@ import java.lang.*;
 import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
-    private final int DEPTH = 4;
+    private final int DEPTH = 3;
     private long starttime;
     private long endtime;
     private final int WIN_SCORE = 100;
@@ -326,7 +326,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 break;
         }
 
-	    return 4*count4 + 3*count3 + 2*count2 + count1;
+	    return (-1*count4) + (3*count3) + (2*count2) + (1*count1);
 
     }
 
