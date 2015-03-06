@@ -3,6 +3,10 @@ import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
     private final int DEPTH = 4;
+    private long starttime;
+    private long endtime;
+    private final int WIN_SCORE = 100;
+    private final int LOSE_SCORE = -100;
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
         // because super calls one of the super class constructors(you can overload constructors), you need to pass the parameters required.
@@ -42,6 +46,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 	 */
     @Override
     protected String pieceSelectionAlgorithm() {
+        starttime = System.nanoTime();
         System.out.println("Choosing piece....");
         int pieceID=-1;//THIS SHOULD NEVER ACTUALLY BE USED
         int alpha = Integer.MIN_VALUE;
@@ -63,6 +68,8 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 }
             }
         }
+        endtime = System.nanoTime();
+        System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose piece.");
         String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
         return BinaryString;
     }
@@ -78,7 +85,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
                     if (checkIfGameIsWon(copyBoard)){
-                        return Integer.MIN_VALUE;
+                        return LOSE_SCORE;
                     }
                     int successorValue = minChoosePiece(copyBoard, alpha, beta, depth+1);
                     if (successorValue<value){
@@ -130,7 +137,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     QuartoBoard copyBoard = new QuartoBoard(board);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
                     if (checkIfGameIsWon(copyBoard)){
-                        return Integer.MAX_VALUE;
+                        return WIN_SCORE;
                     }
                     int successorValue = maxChoosePiece(copyBoard, alpha, beta, depth+1);
                     if (successorValue>value){
@@ -173,6 +180,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     @Override
     protected String moveSelectionAlgorithm(int pieceID) {
+        starttime = System.nanoTime();
         //do work
         System.out.println("Choosing move....");
         int[] move = new int[2];
@@ -202,6 +210,8 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 }
             }
         }
+        endtime = System.nanoTime();
+        System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose position.");
         return move[0] + "," + move[1];
     }
 
