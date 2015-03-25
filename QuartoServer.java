@@ -116,7 +116,7 @@ public class QuartoServer {
 
 		} catch (Exception e) {
 				pieceID = quartoBoard.chooseRandomPieceNotPlayed(100);
-				this.gameServer.writeToPlayer(playerTwoID, ERROR_PIECE_HEADER + quartoBoard.getPiece(pieceID).binaryStringRepresentation());
+				this.gameServer.writeToPlayer(playerTwoID, "\u001B[31m" + ERROR_PIECE_HEADER + quartoBoard.getPiece(pieceID).binaryStringRepresentation() + "\u001B[0m");
 		}
 
 		//line not needed anymore, keeping it here unless reverting code
@@ -146,7 +146,7 @@ public class QuartoServer {
 
 		} catch (Exception e) {
 			move = quartoBoard.chooseRandomPositionNotPlayed(100);
-			this.gameServer.writeToPlayer(playerOneID, ERROR_MOVE_HEADER + move[0] + "," + move[1]);
+			this.gameServer.writeToPlayer(playerOneID, "\u001B[31m" + ERROR_MOVE_HEADER + move[0] + "," + move[1] + "\u001B[0m");
 		}
 		this.gameServer.writeToPlayer(playerTwoID, MOVE_MESSAGE_HEADER + move[0] + "," + move[1]);
 
