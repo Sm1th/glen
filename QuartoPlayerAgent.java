@@ -2,12 +2,15 @@ import java.lang.*;
 import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
-    private final int DEPTH = 3;
+    private final int DEPTH = 4;
+    private int leafCount = 0;
     private long starttime;
     private long endtime;
     private final int WIN_SCORE = 1000;
     private final int LOSE_SCORE = -1000;
-    private final int simulations = 1;
+    private final int TIE_SCORE = 0;
+    private int simulations = 1;
+    private final int FAKE_PIECE_ID = -1;
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
         // because super calls one of the super class constructors(you can overload constructors), you need to pass the parameters required.
@@ -47,16 +50,17 @@ public class QuartoPlayerAgent extends QuartoAgent {
 	 */
     @Override
     protected String pieceSelectionAlgorithm() {
+        leafCount = 0;
         starttime = System.nanoTime();
         System.out.println("Choosing piece....");
-        int pieceID=-1;//THIS SHOULD NEVER ACTUALLY BE USED
+        int pieceID=FAKE_PIECE_ID;//THIS SHOULD NEVER ACTUALLY BE USED
         double alpha = Double.NEGATIVE_INFINITY;
         double beta = Double.POSITIVE_INFINITY;
         double value = Double.NEGATIVE_INFINITY;
         for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
             QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
             if (!copyBoard.isPieceOnBoard(i)){
-                double successorValue = minChoosePosition(copyBoard, i, alpha, beta, 0);
+                double successorValue = minChoosePosition(copyBoard, i, alpha, beta, 1);
                 if (successorValue>value){
                     value = successorValue;
                     pieceID = i;
@@ -71,24 +75,30 @@ public class QuartoPlayerAgent extends QuartoAgent {
         }
         endtime = System.nanoTime();
         System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose piece.");
+        System.out.println("Explored " + leafCount + " leaves.");
         String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
         return BinaryString;
     }
 
     private double minChoosePosition(QuartoBoard board, int pieceID, double alpha, double beta, int depth){
         if (depth>=DEPTH){
+            leafCount++;
             return monteCarlo(board, false, false, pieceID);
         }
         double value = Double.POSITIVE_INFINITY;
         for (int row=0;row<board.getNumberOfRows();row++){
             for (int col=0;col<board.getNumberOfColumns();col++){
                 if (!board.isSpaceTaken(row, col)){
-                    QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+                    QuartoBoard copyBoard = new QuartoBoard(board);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    double successorValue;
                     if (checkIfGameIsWon(copyBoard)){
                         return LOSE_SCORE;
+                    }else if (copyBoard.checkIfBoardIsFull()){
+                        return TIE_SCORE;
+                    }else{
+                        successorValue = minChoosePiece(copyBoard, alpha, beta, depth+1);    
                     }
-                    double successorValue = minChoosePiece(copyBoard, alpha, beta, depth+1);
                     if (successorValue<value){
                         value=successorValue;
                     }
@@ -106,11 +116,12 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     private double minChoosePiece(QuartoBoard board, double alpha, double beta, int depth){
         if (depth>=DEPTH){
-            return monteCarlo(board, false, true, 0);
+            leafCount++;
+            return monteCarlo(board, false, true, FAKE_PIECE_ID);
         }
         double value = Double.POSITIVE_INFINITY;
         for (int i=0;i<board.getNumberOfPieces();i++){
-            QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+            QuartoBoard copyBoard = new QuartoBoard(board);
             if (!copyBoard.isPieceOnBoard(i)){
                 double successorValue = maxChoosePosition(copyBoard, i, alpha, beta, depth+1);
                 if (successorValue<value){
@@ -129,6 +140,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     private double maxChoosePosition(QuartoBoard board, int pieceID, double alpha, double beta, int depth){
         if (depth>=DEPTH){
+            leafCount++;
             return monteCarlo(board, true, false, pieceID);
         }
         double value = Double.NEGATIVE_INFINITY;
@@ -137,10 +149,14 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 if (!board.isSpaceTaken(row, col)){
                     QuartoBoard copyBoard = new QuartoBoard(board);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    double successorValue;
                     if (checkIfGameIsWon(copyBoard)){
                         return WIN_SCORE;
+                    }else if (copyBoard.checkIfBoardIsFull()){
+                        successorValue = TIE_SCORE;
+                    }else{
+                        successorValue = maxChoosePiece(copyBoard, alpha, beta, depth+1);    
                     }
-                    double successorValue = maxChoosePiece(copyBoard, alpha, beta, depth+1);
                     if (successorValue>value){
                         value=successorValue;
                     }
@@ -158,7 +174,8 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     private double maxChoosePiece(QuartoBoard board, double alpha, double beta, int depth){
         if (depth>=DEPTH){
-            return monteCarlo(board, true, true, 0);
+            leafCount++;
+            return monteCarlo(board, true, true, FAKE_PIECE_ID);
         }
         double value = Double.NEGATIVE_INFINITY;
         for (int i=0;i<board.getNumberOfPieces();i++){
@@ -181,6 +198,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     @Override
     protected String moveSelectionAlgorithm(int pieceID) {
+        leafCount = 0;
         starttime = System.nanoTime();
         //do work
         System.out.println("Choosing move....");
@@ -193,10 +211,12 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 if (!this.quartoBoard.isSpaceTaken(row, col)){
                     QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
-                    if (checkIfGameIsWon(copyBoard)){
+                    double successorValue;
+                    if (checkIfGameIsWon(copyBoard) || copyBoard.checkIfBoardIsFull()){
                         return row + "," + col;
+                    }else{
+                        successorValue = maxChoosePiece(copyBoard, alpha, beta, 1);
                     }
-                    double successorValue = maxChoosePiece(copyBoard, alpha, beta, 0);
                     if (successorValue>value){
                         value=successorValue;
                         move[0]=row;
@@ -213,17 +233,16 @@ public class QuartoPlayerAgent extends QuartoAgent {
         }
         endtime = System.nanoTime();
         System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose position.");
+        System.out.println("Explored " + leafCount + " leaves.");
         return move[0] + "," + move[1];
     }
 
     private double monteCarlo(QuartoBoard board, boolean isGlensTurn, boolean isChoosePiece, int pieceId){
         int sum = 0;
-
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
             sum+=runSimulation(copyBoard, isGlensTurn, isChoosePiece, pieceId);
         }
-
         return sum/simulations;
     }
 
@@ -248,7 +267,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
             pieceId = board.chooseRandomPieceNotPlayed(100);
             isGlensTurn=!isGlensTurn;
         }
-        return LOSE_SCORE;
+        return TIE_SCORE;
     }
 
 
