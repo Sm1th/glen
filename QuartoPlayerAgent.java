@@ -244,6 +244,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 
     private double monteCarlo(QuartoBoard board, boolean isGlensTurn, boolean isChoosePiece, int pieceId){
         int sum = 0;
+        int simulations = 100;
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
             sum+=runSimulation(copyBoard, isGlensTurn, isChoosePiece, pieceId);

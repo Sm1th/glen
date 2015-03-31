@@ -69,21 +69,32 @@ public class QuartoServer {
 			}
 		}
 		//the server will keep running for additional games/clients
-		for (int i=0;i<100;i++) {
-			System.out.print("\rRunning game #"+(i+1));
-			System.out.print(", "+gameServer.playerOne + " wins: " + playerOneWins);
-			System.out.print(", "+gameServer.playerTwo + " wins: " + playerTwoWins);
-			System.out.print(", Draws: " + ties);
-			gameServer.startServer(4321);
-			gameServer.acceptClients(2);
-			QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
-			quarto.play();
-			gameServer.closeServer();
+		if (gameServer.automatic){
+			for (int i=0;i<100;i++) {
+				System.out.print("\rRunning game #"+(i+1));
+				System.out.print(", "+gameServer.playerOne + " wins: " + playerOneWins);
+				System.out.print(", "+gameServer.playerTwo + " wins: " + playerTwoWins);
+				System.out.print(", Draws: " + ties);
+				gameServer.startServer(4321);
+				gameServer.acceptClients(2);
+				QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
+				quarto.play();
+				gameServer.closeServer();
+			}
+			System.out.print("\r                                                                                            \r");
+			System.out.println(gameServer.playerOne + " wins: \t" + playerOneWins);
+			System.out.println(gameServer.playerTwo + " wins: \t" + playerTwoWins);
+			System.out.println("Draws: \t\t\t\t" + ties);
+		}else{
+			while(true){
+				gameServer.startServer(4321);
+	 			gameServer.acceptClients(2);
+	 			QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
+	 			quarto.play();
+	 			gameServer.closeServer();
+			}
 		}
-		System.out.print("\r                                                                                            \r");
-		System.out.println(gameServer.playerOne + " wins: \t" + playerOneWins);
-		System.out.println(gameServer.playerTwo + " wins: \t" + playerTwoWins);
-		System.out.println("Draws: \t\t\t\t" + ties);
+		
 
 	}
 
