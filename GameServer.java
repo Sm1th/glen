@@ -9,10 +9,20 @@ public class GameServer {
 	private int portNumber;
 	private boolean serverIsRunning = false;
 
+	public String playerOne = "QuartoRandomAgent";
+	public String playerTwo = "QuartoRandomAgent";
+	public boolean automatic = false;
+
 	public static final String INFORM_PLAYER_NUMBER_HEADER = "PLAYER: ";
 
-
 	public GameServer() {
+		//this.portNumber = portNumber;
+	}
+
+	public GameServer(String player1, String player2) {
+		playerOne = player1;
+		playerTwo = player2;
+		automatic = true;
 		//this.portNumber = portNumber;
 	}
 	
@@ -53,7 +63,13 @@ public class GameServer {
 		
 		for(int i = 0; i < numberOfPlayers; i++) {
 			try {
-			
+				if (automatic){
+					if (i==0){
+						new ProcessBuilder("java", playerOne, "localhost").start();
+					}else{	
+						new ProcessBuilder("java", playerTwo, "localhost").start();
+					}
+				}
 				this.clientSocketArray[i] = this.serverSocket.accept();
 				this.writeToPlayer((i+1), INFORM_PLAYER_NUMBER_HEADER + (i+1));
 				
