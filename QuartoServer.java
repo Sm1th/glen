@@ -71,10 +71,10 @@ public class QuartoServer {
 		//the server will keep running for additional games/clients
 		if (gameServer.automatic){
 			for (int i=0;i<100;i++) {
-				System.out.print("\rRunning game #"+(i+1));
+				System.out.print("Running game #"+(i+1));
 				System.out.print(", "+gameServer.playerOne + " wins: " + playerOneWins);
 				System.out.print(", "+gameServer.playerTwo + " wins: " + playerTwoWins);
-				System.out.print(", Draws: " + ties);
+				System.out.println(", Draws: " + ties);
 				gameServer.startServer(4321);
 				gameServer.acceptClients(2);
 				QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
