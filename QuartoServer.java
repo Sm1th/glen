@@ -33,6 +33,20 @@ public class QuartoServer {
 
 	//The Main method
 	public static void main(String[] args) {
+		String stateFileName = null;
+		//optional pass in argument is the path to a .quarto file
+		if(args.length > 0) {
+			for (int i=0;i<args.length;i++){
+				if (i==0 && !args[i].equals("-p1") && !args[i].equals("-p2")){
+					stateFileName = args[i];
+					break;
+				}
+				if (i!=0 && !args[i].equals("-p1") && !args[i].equals("-p2") && !args[i-1].equals("-p1") && !args[i-1].equals("-p2")){
+					stateFileName = args[i];
+					break;
+				}
+			}
+		}
 		//start the server
 		GameServer gameServer;
 		if (args.length >= 4){
@@ -49,28 +63,14 @@ public class QuartoServer {
 			if (p1.equals("") || p2.equals("")){
 				gameServer = new GameServer();
 			}else{
-				gameServer = new GameServer(p1, p2);
+				gameServer = new GameServer(p1, p2, stateFileName);
 			}
 		}else{
 			gameServer = new GameServer();
 		}
-		String stateFileName = null;
-		//optional pass in argument is the path to a .quarto file
-		if(args.length > 0) {
-			for (int i=0;i<args.length;i++){
-				if (i==0 && !args[i].equals("-p1") && !args[i].equals("-p2")){
-					stateFileName = args[i];
-					break;
-				}
-				if (i!=0 && !args[i].equals("-p1") && !args[i].equals("-p2") && !args[i-1].equals("-p1") && !args[i-1].equals("-p2")){
-					stateFileName = args[i];
-					break;
-				}
-			}
-		}
 		//the server will keep running for additional games/clients
 		if (gameServer.automatic){
-			for (int i=0;i<100;i++) {
+			for (int i=0;i<10;i++) {
 				System.out.print("Running game #"+(i+1));
 				System.out.print(", "+gameServer.playerOne + " wins: " + playerOneWins);
 				System.out.print(", "+gameServer.playerTwo + " wins: " + playerTwoWins);

@@ -11,6 +11,7 @@ public class GameServer {
 
 	public String playerOne = "QuartoRandomAgent";
 	public String playerTwo = "QuartoRandomAgent";
+	public String stateFileName = null;
 	public boolean automatic = false;
 
 	public static final String INFORM_PLAYER_NUMBER_HEADER = "PLAYER: ";
@@ -19,7 +20,8 @@ public class GameServer {
 		//this.portNumber = portNumber;
 	}
 
-	public GameServer(String player1, String player2) {
+	public GameServer(String player1, String player2, String state) {
+		stateFileName = state;
 		playerOne = player1;
 		playerTwo = player2;
 		automatic = true;
@@ -65,9 +67,17 @@ public class GameServer {
 			try {
 				if (automatic){
 					if (i==0){
-						new ProcessBuilder("java", playerOne, "localhost").start();
+						if (stateFileName != null){
+							new ProcessBuilder("java", playerOne, "localhost", stateFileName).start();
+						}else{
+							new ProcessBuilder("java", playerOne, "localhost").start();
+						}
 					}else{	
-						new ProcessBuilder("java", playerTwo, "localhost").start();
+						if (stateFileName != null){
+							new ProcessBuilder("java", playerTwo, "localhost", stateFileName).start();
+						}else{
+							new ProcessBuilder("java", playerTwo, "localhost").start();
+						}
 					}
 				}
 				this.clientSocketArray[i] = this.serverSocket.accept();
