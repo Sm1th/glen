@@ -171,21 +171,24 @@ public class QuartoBoard {
 	public boolean checkDiagonals() {
 		boolean[] characteristics;
 		int[] commonCharacteristics = new int[] {0, 0, 0, 0, 0};
+		boolean unableToWinFirstDiagonal = false;
 
 		for(int row = 0, column = 0; row < this.getNumberOfRows(); row++, column++) {
 			QuartoPiece piece = this.getPieceOnPosition(row, column);
 			if(piece == null) {
-				return false;
+				unableToWinFirstDiagonal = true;
+				break;
 			}
 			characteristics = piece.getCharacteristicsArray();
 			for(int i = 0; i < commonCharacteristics.length; i++) {
 				commonCharacteristics[i] = commonCharacteristics[i] + (characteristics[i] ? 1 : 0);
 			}
 		}
-
-		for(int i = 0; i < commonCharacteristics.length; i++) {
-			if (commonCharacteristics[i] == 0 || commonCharacteristics[i] == 5) {
-				return true;
+		if (!unableToWinFirstDiagonal){
+			for(int i = 0; i < commonCharacteristics.length; i++) {
+				if (commonCharacteristics[i] == 0 || commonCharacteristics[i] == 5) {
+					return true;
+				}
 			}
 		}
 

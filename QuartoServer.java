@@ -23,26 +23,78 @@ public class QuartoServer {
 	//time limit is in milliseconds
 	private static final int TIME_LIMIT_FOR_RESPONSE = 10000;
 
+	//counters
+	private static int playerOneWins = 0;
+	private static int playerTwoWins = 0;
+	private static int ties = 0;
+
 	GameServer gameServer;
 	QuartoBoard quartoBoard;
 
 	//The Main method
 	public static void main(String[] args) {
-		//start the server
-		GameServer gameServer = new GameServer();
 		String stateFileName = null;
 		//optional pass in argument is the path to a .quarto file
 		if(args.length > 0) {
-			stateFileName = args[0];
+			for (int i=0;i<args.length;i++){
+				if (i==0 && !args[i].equals("-p1") && !args[i].equals("-p2")){
+					stateFileName = args[i];
+					break;
+				}
+				if (i!=0 && !args[i].equals("-p1") && !args[i].equals("-p2") && !args[i-1].equals("-p1") && !args[i-1].equals("-p2")){
+					stateFileName = args[i];
+					break;
+				}
+			}
+		}
+		//start the server
+		GameServer gameServer;
+		if (args.length >= 4){
+			String p1 = "";
+			String p2 = "";
+			for (int i=0;i<args.length;i++){
+				if (args[i].equals("-p1") && args.length > i+1){
+					p1 = args[i+1];
+				}
+				if (args[i].equals("-p2") && args.length > i+1){
+					p2 = args[i+1];
+				}
+			}
+			if (p1.equals("") || p2.equals("")){
+				gameServer = new GameServer();
+			}else{
+				gameServer = new GameServer(p1, p2, stateFileName);
+			}
+		}else{
+			gameServer = new GameServer();
 		}
 		//the server will keep running for additional games/clients
-		while(true) {
-			gameServer.startServer(4321);
-			gameServer.acceptClients(2);
-			QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
-			quarto.play();
-			gameServer.closeServer();
+		if (gameServer.automatic){
+			for (int i=0;i<10;i++) {
+				System.out.print("Running game #"+(i+1));
+				System.out.print(", "+gameServer.playerOne + " wins: " + playerOneWins);
+				System.out.print(", "+gameServer.playerTwo + " wins: " + playerTwoWins);
+				System.out.println(", Draws: " + ties);
+				gameServer.startServer(4321);
+				gameServer.acceptClients(2);
+				QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
+				quarto.play();
+				gameServer.closeServer();
+			}
+			System.out.print("\r                                                                                            \r");
+			System.out.println(gameServer.playerOne + " wins: \t" + playerOneWins);
+			System.out.println(gameServer.playerTwo + " wins: \t" + playerTwoWins);
+			System.out.println("Draws: \t\t\t\t" + ties);
+		}else{
+			while(true){
+				gameServer.startServer(4321);
+	 			gameServer.acceptClients(2);
+	 			QuartoServer quarto = new QuartoServer(gameServer, stateFileName);
+	 			quarto.play();
+	 			gameServer.closeServer();
+			}
 		}
+		
 
 	}
 
@@ -76,6 +128,11 @@ public class QuartoServer {
 			if(this.checkIfGameIsWon()) {
 				this.gameServer.writeToAllPlayers(GAME_OVER_HEADER + "player " + playerOne + " wins");
 				this.quartoBoard.printBoardState();
+				if (playerOne == 1){
+					playerOneWins++;
+				}else{
+					playerTwoWins++;
+				}
 				break;
 			} else {
 				int temp = playerOne;
@@ -86,6 +143,7 @@ public class QuartoServer {
 			if (this.checkIfGameIsDraw()) {
 				this.gameServer.writeToAllPlayers(GAME_OVER_HEADER + "Game is a draw");
 				this.quartoBoard.printBoardState();
+				ties++;
 				break;
 			}
 

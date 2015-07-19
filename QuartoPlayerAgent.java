@@ -2,11 +2,11 @@ import java.lang.*;
 import java.util.Arrays;
 public class QuartoPlayerAgent extends QuartoAgent {
 
-    private final int DEPTH = 3;
-    private long starttime;
-    private long endtime;
+    private int maxDepth = 4;
     private final int WIN_SCORE = 100;
     private final int LOSE_SCORE = -100;
+    private final int TIE_SCORE = 0;
+    private final int COMPUTATIONAL_DELAY = COMMUNICATION_DELAY + 250;
 
     public QuartoPlayerAgent(GameClient gameClient, String stateFileName) {
         // because super calls one of the super class constructors(you can overload constructors), you need to pass the parameters required.
@@ -46,8 +46,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
 	 */
     @Override
     protected String pieceSelectionAlgorithm() {
-        starttime = System.nanoTime();
-        System.out.println("Choosing piece....");
+        this.startTimer();
         int pieceID=-1;//THIS SHOULD NEVER ACTUALLY BE USED
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
@@ -55,7 +54,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
         for (int i=0;i<this.quartoBoard.getNumberOfPieces();i++){
             QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
             if (!copyBoard.isPieceOnBoard(i)){
-                int successorValue = minChoosePosition(copyBoard, i, alpha, beta, 0);
+                int successorValue = minChoosePosition(copyBoard, i, alpha, beta, 1);
                 if (successorValue>value){
                     value = successorValue;
                     pieceID = i;
@@ -67,27 +66,35 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     alpha=value;
                 }
             }
+            if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                break;
+            }
         }
-        endtime = System.nanoTime();
-        System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose piece.");
         String BinaryString = String.format("%5s", Integer.toBinaryString(pieceID)).replace(' ', '0');
         return BinaryString;
     }
 
     private int minChoosePosition(QuartoBoard board, int pieceID, int alpha, int beta, int depth){
-        if (depth>=DEPTH){
+        if (depth>=maxDepth){
             return -getHeuristicValue(board);
         }
         int value = Integer.MAX_VALUE;
         for (int row=0;row<board.getNumberOfRows();row++){
             for (int col=0;col<board.getNumberOfColumns();col++){
                 if (!board.isSpaceTaken(row, col)){
-                    QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+                    QuartoBoard copyBoard = new QuartoBoard(board);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    int successorValue;
                     if (checkIfGameIsWon(copyBoard)){
                         return LOSE_SCORE;
                     }
-                    int successorValue = minChoosePiece(copyBoard, alpha, beta, depth+1);
+                    else if (copyBoard.checkIfBoardIsFull()){
+                        return TIE_SCORE;
+                    }
+                    else {
+                        successorValue = minChoosePiece(copyBoard, alpha, beta, depth+1);
+                    }
+
                     if (successorValue<value){
                         value=successorValue;
                     }
@@ -98,18 +105,21 @@ public class QuartoPlayerAgent extends QuartoAgent {
                         beta=value;
                     }
                 }
+                if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                    return value;
+                }   
             }
         }
         return value;
     }
 
     private int minChoosePiece(QuartoBoard board, int alpha, int beta, int depth){
-        if (depth>=DEPTH){
+        if (depth>=maxDepth){
             return -getHeuristicValue(board);
         }
         int value = Integer.MAX_VALUE;
         for (int i=0;i<board.getNumberOfPieces();i++){
-            QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
+            QuartoBoard copyBoard = new QuartoBoard(board);
             if (!copyBoard.isPieceOnBoard(i)){
                 int successorValue = maxChoosePosition(copyBoard, i, alpha, beta, depth+1);
                 if (successorValue<value){
@@ -122,12 +132,15 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     beta=value;
                 }
             }
+            if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                return value;
+            } 
         }
         return value;
     }
 
     private int maxChoosePosition(QuartoBoard board, int pieceID, int alpha, int beta, int depth){
-        if (depth>=DEPTH){
+        if (depth>=maxDepth){
             return getHeuristicValue(board);
         }
         int value = Integer.MIN_VALUE;
@@ -136,10 +149,16 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 if (!board.isSpaceTaken(row, col)){
                     QuartoBoard copyBoard = new QuartoBoard(board);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
+                    int successorValue;
                     if (checkIfGameIsWon(copyBoard)){
                         return WIN_SCORE;
                     }
-                    int successorValue = maxChoosePiece(copyBoard, alpha, beta, depth+1);
+                    else if (copyBoard.checkIfBoardIsFull()){
+                        return TIE_SCORE;
+                    }
+                    else {
+                        successorValue = maxChoosePiece(copyBoard, alpha, beta, depth+1);
+                    }
                     if (successorValue>value){
                         value=successorValue;
                     }
@@ -150,13 +169,16 @@ public class QuartoPlayerAgent extends QuartoAgent {
                         alpha=value;
                     }
                 }
+                if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                    return value;
+                } 
             }
         }
         return value;
     }
 
     private int maxChoosePiece(QuartoBoard board, int alpha, int beta, int depth){
-        if (depth>=DEPTH){
+        if (depth>=maxDepth){
             return getHeuristicValue(board);
         }
         int value = Integer.MIN_VALUE;
@@ -174,15 +196,16 @@ public class QuartoPlayerAgent extends QuartoAgent {
                     alpha=value;
                 }
             }
+            if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                return value;
+            } 
         }
         return value;
     }
 
     @Override
     protected String moveSelectionAlgorithm(int pieceID) {
-        starttime = System.nanoTime();
-        //do work
-        System.out.println("Choosing move....");
+        this.startTimer();
         int[] move = new int[2];
         int value = Integer.MIN_VALUE;
         int alpha = Integer.MIN_VALUE;
@@ -192,10 +215,13 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 if (!this.quartoBoard.isSpaceTaken(row, col)){
                     QuartoBoard copyBoard = new QuartoBoard(this.quartoBoard);
                     copyBoard.insertPieceOnBoard(row, col, pieceID);
-                    if (checkIfGameIsWon(copyBoard)){
+                    int successorValue;
+                    if (checkIfGameIsWon(copyBoard) || copyBoard.checkIfBoardIsFull()){
                         return row + "," + col;
                     }
-                    int successorValue = maxChoosePiece(copyBoard, alpha, beta, 0);
+                    else {
+                        successorValue = maxChoosePiece(copyBoard, alpha, beta, 1);
+                    }
                     if (successorValue>value){
                         value=successorValue;
                         move[0]=row;
@@ -208,32 +234,46 @@ public class QuartoPlayerAgent extends QuartoAgent {
                         alpha=value;
                     }
                 }
+                if (this.getMillisecondsFromTimer() > (this.timeLimitForResponse - COMPUTATIONAL_DELAY)) {
+                    return move[0] + "," + move[1];
+                } 
             }
         }
-        endtime = System.nanoTime();
-        System.out.println("Took " + (endtime-starttime)/1000000 + " milliseconds to choose position.");
         return move[0] + "," + move[1];
     }
 
-    private int monteCarlo(QuartoBoard board, int simulations, int turn){
-        if (simulations<=0) {
-            simulations=100;
-        }
+    private double monteCarlo(QuartoBoard board, boolean isGlensTurn, boolean isChoosePiece, int pieceId){
         int sum = 0;
+        int simulations = 100;
         for (int i=0;i<simulations;i++){
             QuartoBoard copyBoard = new QuartoBoard(board);
-            while (!copyBoard.checkIfBoardIsFull()){
-                int pieceId = copyBoard.chooseRandomPieceNotPlayed(100);
-                int[] move = copyBoard.chooseRandomPositionNotPlayed(100);
-                copyBoard.insertPieceOnBoard(move[0], move[1], pieceId);
-                if (checkIfGameIsWon(copyBoard)){
-                    sum+=turn;
-                    break;
-                }
-                turn = 0-turn;
-            }
+            sum+=runSimulation(copyBoard, isGlensTurn, isChoosePiece, pieceId);
         }
-        return sum;
+        return sum/simulations;
+    }
+
+    private double runSimulation(QuartoBoard board, boolean isGlensTurn, boolean isChoosePiece, int givenPieceId){
+        int pieceId;
+        if (isChoosePiece){
+            pieceId = board.chooseRandomPieceNotPlayed(100);
+            isGlensTurn=!isGlensTurn;
+        }else{
+            pieceId = givenPieceId;
+        }
+        while (!board.checkIfBoardIsFull()){
+            int[] move = board.chooseRandomPositionNotPlayed(100);
+            board.insertPieceOnBoard(move[0], move[1], pieceId);
+            if (checkIfGameIsWon(board)){
+                if (isGlensTurn){
+                    return WIN_SCORE;
+                }else{
+                    return LOSE_SCORE;
+                }
+            }
+            pieceId = board.chooseRandomPieceNotPlayed(100);
+            isGlensTurn=!isGlensTurn;
+        }
+        return TIE_SCORE;
     }
 
     private boolean checkIfGameIsWon(QuartoBoard board) {
@@ -326,7 +366,7 @@ public class QuartoPlayerAgent extends QuartoAgent {
                 break;
         }
 
-	    return (-1*count4) + (3*count3) + (2*count2) + (1*count1);
+	    return (4*count4) + (3*count3) + (2*count2) + (1*count1);
 
     }
 
@@ -487,4 +527,47 @@ public class QuartoPlayerAgent extends QuartoAgent {
 		int returnVal = commonCharacteristics[commonCharacteristics.length - 1];
 		return (returnVal == -1) ? 0 : returnVal;
 	}
+
+    private int piecesLeft(QuartoBoard board){
+        int count = 0;
+        for (int i=0;i<board.getNumberOfPieces();i++){
+            if (!board.isPieceOnBoard(i)){
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int spacesLeft(QuartoBoard board){
+        int count = 0;
+        for (int i=0;i<board.getNumberOfRows();i++){
+            for (int j=0;j<board.getNumberOfColumns();j++){
+                if (!board.isSpaceTaken(i,j)){
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private void decideDepth(){
+        int spacesLeft = spacesLeft(this.quartoBoard);
+        int piecesLeft = spacesLeft+7;
+        maxDepth = 0;
+        int nodes = 32*25*31*24; //first 4 turns in the game...
+        while (nodes>10){
+            if (maxDepth%2==0) {
+                nodes = nodes/spacesLeft;
+                spacesLeft--;
+            }else{
+                nodes = nodes/piecesLeft;
+                piecesLeft--;
+            }
+            if (spacesLeft==0 || piecesLeft==0){
+                break;
+            }
+            maxDepth++;
+        }
+        System.out.println(maxDepth);
+    }
 }
